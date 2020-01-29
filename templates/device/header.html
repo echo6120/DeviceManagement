@@ -1,0 +1,19 @@
+{% load staticfiles %}
+<div class="container">
+    <nav class="navbar navbar-default" role="navigation">
+        <div class="navbar-header">
+            <a class="navbar-brand" href="http://www.bugsystem.com">
+                <img width="30px" src="{% static 'images/logo.jpg' %}">
+            </a>
+        </div>
+        <div>
+            <ul class="nav navbar-nav" role="tablist">
+                <li><a href="{% url 'DeviceManagement:add_device' %}">设备借用管理</a></li>
+                <li><a href="{% url 'DeviceManagement:device_system' %}">设备系统管理</a></li>
+            </ul>
+        </div>
+    </nav>
+</div>
+
+<script src="{% static 'js/jquery.js' %}"></script>
+<script src="{% static 'js/bootstrap.js' %}"></script>

@@ -1,0 +1,123 @@
+{% extends "device/base.html" %}
+{% load staticfiles %}
+{% block title %}device system{% endblock %} {% block content %}
+<div>
+    <p class="text-right">
+        <button id= "add_system" onclick="add_system()" class="btn btn-primary"> 增加设备系统</button>
+    </p>
+    <table class="table table-hover">
+        <tr>
+            <td>序号</td>
+            <td>系统名称</td>
+            <td>操作</td>
+        </tr>
+        {% for system in systems %}
+        <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>{{ system.System }}</td>
+            <td>
+                <a name="edit" href="javascript:" onclick="edit_system(this, {{ system.id }})">
+                    <span class="glyphicon glyphicon-pencil"></span>
+                </a>
+                <a name="delete" href="javascript:" onclick="del_system(this, {{ system.id }})">
+                    <span class="glyphicon glyphicon-trash" style="margin-left:20px;"></span>
+                </a>
+            </td>
+        </tr>
+        {% empty %}
+        <p>还没有设置系统，太懒了。</p>
+        {% endfor %}
+    </table>
+</div>
+
+<script type="text/javascript" src='{% static "js/jquery.js" %}'></script>
+<script type="text/javascript" src="{% static 'js/layer.js'%}"></script>
+<script type="text/javascript">
+    function add_system() {
+        var index = layer.open({
+            type: 1,
+            skin: "layui-layer-rim",
+            area: ["400px", "200px"],
+            title: "新增设备系统",
+            content: '<div class="text-center" style="margin-top:20px"><p> 请输入新的设备系统</p> <p><input type="text" id="id_system"></p> </div > ',
+            btn: ['确定', '取消'],
+            yes: function (index, layero) {
+                system_name = $('#id_system').val();
+                console.log(system_name)
+                $.ajax({
+                    url: '{% url "DeviceManagement:device_system" %}',
+                    type: 'POST',
+                    data: { "system_name": system_name },
+                    success: function (e) {
+                        if (e == "1") {
+                            parent.location.reload();
+                            layer.msg("good");
+                        } else {
+                            layer.msg("此系统已有，请更换名称")
+                        }
+                    },
+                });
+            },
+            btn2: function (index, layero) {
+                layer.close(index);
+            }
+        });
+    }
+
+    function edit_system(the, system_id){
+        var name = $(the).parents("tr").children("td").eq(1).text();
+        var index = layer.open({
+            type: 1,
+            skin: "layui-layer-rim",
+            area: ["400px", "200px"],
+            title: "编辑栏目",
+            content: '<div class="text-center" style="margin-top:20px"> <p>请编辑系统名称</p><p><input type="text" id="new_name" value="'+name+'"></p> </div>',
+            btn:['确定', '取消'],
+            yes: function(index, layero){
+                new_name = $("#new_name").val();
+                console.log(new_name)
+                $.ajax({
+                    url: "{% url 'DeviceManagement:rename_device_system' %}",
+                    type: "POST",
+                    data: {"device_system_id": system_id, "system_name": new_name},
+                    success: function(e){
+                        if(e=="1"){
+                            parent.location.reload();
+                            layer.msg("已修改");
+                        }else{
+                            layer.msg("新的系统名称没有保存,修改失败。")
+                        }
+                    },
+                });
+            },
+        });
+    }
+
+    function del_system(the, system_id){
+        var name = $(the).parents("tr").children("td").eq(1).text();
+        layer.open({
+            type: 1,
+            skin: "layui-layer-rim",
+            area: ["400px", "200px"],
+            title: "删除栏目",
+            content: '<div class="text-center" style="margin-top:20px"><p>是否确定删除{'+name+'}栏目</p> </div>',
+            btn:['确定', '取消'], yes: function(){
+                $.ajax({
+                    url: '{% url "DeviceManagement:del_device_system" %}',
+                    type:"POST",
+                    data: {"device_system_id":system_id},
+                    success: function(e){
+                        if(e=="1"){
+                            parent.location.reload();
+                            layer.msg("has been deleted.");
+                        }else{
+                            layer.msg("删除失败");
+                        }
+                    },
+                })
+            },
+        });
+    }
+</script>
+
+{% endblock %}

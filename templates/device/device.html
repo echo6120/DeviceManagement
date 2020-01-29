@@ -1,0 +1,119 @@
+{% extends "device/base.html" %}
+{% load staticfiles %}
+{% block title %}device{% endblock %} {% block content %}
+<div>
+    <p class="text-right">
+        <button id= "add_system" onclick="add_device()" class="btn btn-primary"> 增加设备</button>
+    </p>
+    <table class="table table-hover">
+        <tr>
+            <td>序号</td>
+            <td>设备名称</td>
+            <td>设备系统</td>
+            <td>owner</td>
+            <td>借用人</td>
+            <td>操作</td>
+        </tr>
+        {% for device in devices %}
+        <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>{{ device.device_system }}</td>
+            <td>{{ device.device_name }}</td>
+            <td>{{ device.owner }}</td>
+            <td>{{ device.borrow }}</td>
+            <td>
+                <a name="edit" href="javascript:" onclick="edit_device(this, {{ device.id }})">
+                    <span class="glyphicon glyphicon-pencil">借用</span>
+                </a>
+
+            </td>
+        </tr>
+        {% empty %}
+        <p>还没有设备，太懒了。</p>
+        {% endfor %}
+    </table>
+</div>
+
+<script type="text/javascript" src='{% static "js/jquery.js" %}'></script>
+<script type="text/javascript" src="{% static 'js/layer.js'%}"></script>
+<script type="text/javascript">
+    function add_device() {
+        var index = layer.open({
+            type: 1,
+            skin: "layui-layer-rim",
+            area: ["400px", "200px"],
+            title: "新增设备",
+            content: '<div class="text-center" style="margin-top:20px"><p> 请输入新的设备系统</p> \
+            <p>设备名称<input type="text" id="id_name"></p>\
+             <p>设备系统<select id="id_system"> {% for system in systems %} <option value="{{system.id}}">{{system.System}}</option>{% endfor%}</select></p>\
+              <p>owner<input type="text" id="id_owner"></p>\
+              <p>借用人<input type="text" id="id_borrow"></p>\
+             </div > ',
+            btn: ['确定', '取消'],
+            yes: function (index, layero) {
+                device_name = $('#id_name').val();
+                device_system_id = $('#id_system').val();
+                device_owner = $('#id_owner').val();
+                device_borrow = $('#id_borrow').val();
+                $.ajax({
+                    url: '{% url "DeviceManagement:add_device" %}',
+                    type: 'POST',
+                    data: {
+                    "device_name": device_name,
+                    "system_id": device_system_id,
+                    "owner": device_owner,
+                    "borrow": device_borrow,
+                    },
+                    success: function (e) {
+                        if (e == "1") {
+                            parent.location.reload();
+                            layer.msg("good");
+                        } else {
+                            layer.msg("此系统已有，请更换名称")
+                        }
+                    },
+                });
+            },
+            btn2: function (index, layero) {
+                layer.close(index);
+            }
+        });
+    }
+
+    function edit_device(the, device_id){
+        var name = $(the).parents("tr").children("td").eq(1).text();
+        var system_id = $(the).parents("tr").children("td").eq(2).text();
+        var device_owner = $(the).parents("tr").children("td").eq(3).text();
+        var device_borrow = $(the).parents("tr").children("td").eq(4).text();
+        console.log(name,system_id,device_owner,device_borrow)
+        var index = layer.open({
+            type: 1,
+            skin: "layui-layer-rim",
+            area: ["400px", "200px"],
+            title: "编辑栏目",
+            content: '<div class="text-center" style="margin-top:20px">\
+            <p>请填写借用人姓名</p><p><input type="text" id="new_borrow" value="'+device_borrow+'"></p>\
+            </div>',
+            btn:['确定', '取消'],
+            yes: function(index, layero){
+                new_name = $("#new_borrow").val();
+                console.log("888",new_name)
+                $.ajax({
+                    url: "{% url 'DeviceManagement:rename_device_borrow' %}",
+                    type: "POST",
+                    data: {"device_id": device_id, "borrow": new_name},
+                    success: function(e){
+                        if(e=="1"){
+                            parent.location.reload();
+                            layer.msg("已修改");
+                        }else{
+                            layer.msg("新的系统名称没有保存,修改失败。")
+                        }
+                    },
+                });
+            },
+        });
+    }
+</script>
+
+{% endblock %}
